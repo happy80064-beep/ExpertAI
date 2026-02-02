@@ -228,11 +228,13 @@ export const extractContentFromFile = async (file: File, modelConfig?: AIModelCo
     try {
       // If we have a Google/Gemini config provided, use its key.
       // Otherwise, try to use the environment variable key as fallback.
-      let apiKey = process.env.API_KEY || import.meta.env.VITE_GOOGLE_API_KEY;
+      let apiKey = import.meta.env.VITE_GOOGLE_API_KEY || process.env.API_KEY;
       
       if (modelConfig && modelConfig.provider === 'Google' && modelConfig.apiKey) {
           apiKey = modelConfig.apiKey;
       }
+
+      console.log("PDF Extraction: Using API Key?", apiKey ? "Yes (Ends with " + apiKey.slice(-4) + ")" : "No");
 
       if (!apiKey) {
            // If user is using Qwen/OpenAI, we can't easily use their keys for Gemini Vision directly here
