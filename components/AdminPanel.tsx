@@ -27,6 +27,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ models, setModels, appSt
   const [newApiKey, setNewApiKey] = useState('');
   const [newBaseUrl, setNewBaseUrl] = useState('https://api.deepseek.com');
   const [newCorsProxy, setNewCorsProxy] = useState(''); // New State for Proxy
+  const [showAdvanced, setShowAdvanced] = useState(false);
   
   const [testingId, setTestingId] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<Record<string, { success: boolean; msg: string }>>({});
@@ -309,16 +310,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ models, setModels, appSt
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">API Endpoint (Base URL)</label>
-                        <input 
-                            type="text" 
-                            placeholder="例如：https://api.moonshot.cn/v1" 
-                            className="w-full bg-gray-50 border border-gray-300 rounded p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                            value={newBaseUrl}
-                            onChange={(e) => setNewBaseUrl(e.target.value)}
-                        />
-                    </div>
-                    <div>
                         <label className="block text-xs font-medium text-gray-500 mb-1">API Key (sk-...)</label>
                         <input 
                             type="password" 
@@ -328,24 +319,44 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ models, setModels, appSt
                             onChange={(e) => setNewApiKey(e.target.value)}
                         />
                     </div>
+                     {/* Advanced Settings Toggle */}
+                     <div className="flex items-end">
+                        <button 
+                            onClick={() => setShowAdvanced(!showAdvanced)}
+                            className="text-xs text-blue-600 underline hover:text-blue-800"
+                        >
+                            {showAdvanced ? "隐藏高级设置" : "显示高级设置 (BaseURL, Proxy)"}
+                        </button>
+                    </div>
                 </div>
 
-                <div className="bg-gray-50 border border-gray-200 rounded p-3">
-                     <div className="flex items-center gap-2 mb-1">
-                         <Globe size={14} className="text-gray-500" />
-                         <label className="block text-xs font-medium text-gray-700">CORS Proxy (可选，解决 "Failed to fetch" 问题)</label>
-                     </div>
-                     <input 
-                        type="text" 
-                        placeholder="例如：https://cors-anywhere.herokuapp.com/" 
-                        className="w-full bg-white border border-gray-300 rounded p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-300"
-                        value={newCorsProxy}
-                        onChange={(e) => setNewCorsProxy(e.target.value)}
-                    />
-                    <p className="text-[10px] text-gray-400 mt-1">
-                        如果遇到网络错误，请尝试添加代理前缀。注意：请仅使用您信任的代理服务。
-                    </p>
-                </div>
+                {showAdvanced && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fadeIn bg-gray-50 p-3 rounded-lg border border-gray-200">
+                         <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">API Endpoint (Base URL)</label>
+                            <input 
+                                type="text" 
+                                placeholder="例如：https://api.moonshot.cn/v1" 
+                                className="w-full bg-white border border-gray-300 rounded p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                                value={newBaseUrl}
+                                onChange={(e) => setNewBaseUrl(e.target.value)}
+                            />
+                        </div>
+                         <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <Globe size={14} className="text-gray-500" />
+                                <label className="block text-xs font-medium text-gray-700">自定义 CORS Proxy (可选)</label>
+                            </div>
+                            <input 
+                                type="text" 
+                                placeholder="通常不需要填写 (系统会自动代理)" 
+                                className="w-full bg-white border border-gray-300 rounded p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-300"
+                                value={newCorsProxy}
+                                onChange={(e) => setNewCorsProxy(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                )}
 
                 <div className="flex justify-between items-center pt-2">
                     <div className="text-xs text-gray-400 flex items-center gap-1">

@@ -131,13 +131,13 @@ async function callAIProvider(
   const isForeignProvider = ['OpenAI', 'Google'].includes(config.provider);
   const hasCustomProxy = !!config.corsProxy;
   
-  // Use Backend Proxy for Foreign providers by default (unless user overrides with their own proxy)
-  // Also use it if the user manually pointed BaseURL to our backend (though unlikely to match exactly).
-  if (isForeignProvider && !hasCustomProxy) {
+  // Use Backend Proxy for ALL providers by default (unless user overrides with their own proxy)
+  // This solves CORS issues for domestic providers (DeepSeek/Moonshot) and network issues for foreign ones.
+  if (!hasCustomProxy) {
       return callBackendProxy(config, messages, jsonMode);
   }
 
-  // --- Direct / CORS Proxy Logic (Legacy/Domestic) ---
+  // --- Direct / CORS Proxy Logic (Only used if user manually set a CORS Proxy) ---
 
   let endpoint = config.baseUrl?.trim() || '';
   // Fix Endpoint
