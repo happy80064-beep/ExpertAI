@@ -198,10 +198,9 @@ export const callOpenAICompatibleAPI = callAIProvider;
 
 /**
  * Extracts text content from various file types.
+ * Requires a valid modelConfig with an API Key (preferably Gemini/Google) for vision tasks.
  */
-export const extractContentFromFile = async (file: File): Promise<string> => {
-  const ai = getAIClient();
-
+export const extractContentFromFile = async (file: File, modelConfig?: AIModelConfig): Promise<string> => {
   // 1. Text / Markdown
   if (file.type === 'text/plain' || file.name.endsWith('.md') || file.name.endsWith('.txt')) {
     return new Promise((resolve, reject) => {
@@ -224,10 +223,25 @@ export const extractContentFromFile = async (file: File): Promise<string> => {
     }
   }
 
-  // 3. PDF / Images (Using Gemini Vision)
-  // Note: This relies on Client-side API Key currently.
+  // 3. PDF / Images (Using AI Vision)
   if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
     try {
+      // If we have a Google/Gemini config provided, use its key.
+      // Otherwise, try to use the environment variable key as fallback.
+      let apiKey = process.env.API_KEY || import.meta.env.VITE_GOOGLE_API_KEY;
+      
+      if (modelConfig && modelConfig.provider === 'Google' && modelConfig.apiKey) {
+          apiKey = modelConfig.apiKey;
+      }
+
+      if (!apiKey) {
+           // If user is using Qwen/OpenAI, we can't easily use their keys for Gemini Vision directly here
+           // unless we proxy it or use their vision models. 
+           // For now, throw a clearer error.
+           throw new Error("PDF/Image parsing requires a Google Gemini API Key. Please add a Google model or set VITE_GOOGLE_API_KEY.");
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
       const filePart = await fileToGenerativePart(file);
       const model = 'gemini-2.0-flash'; 
 
@@ -242,9 +256,13 @@ export const extractContentFromFile = async (file: File): Promise<string> => {
       }));
       
       return `[AI Extracted Content]:\n${response.text}`;
-    } catch (error) {
+    } catch (error: any) {
       console.error("AI Extraction Failed", error);
-      throw new Error("AI File Extraction failed. Please check your API Key.");
+      const msg = error?.message || "Unknown error";
+      if (msg.includes("API key not valid")) {
+          throw new Error("Google API Key 无效或缺失。解析 PDF/图片需要 Gemini 能力，请确保您配置了 Google 模型或环境变量。");
+      }
+      throw new Error(`AI File Extraction failed: ${msg}`);
     }
   }
 

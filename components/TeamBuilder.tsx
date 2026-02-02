@@ -115,11 +115,14 @@ export const TeamBuilder: React.FC<TeamBuilderProps> = ({
     
     setIsImportingFile(true);
     try {
-      const text = await extractContentFromFile(file);
+      // Find currently selected model to try and use its key if it's Google
+      const selectedModel = models.find(m => m.id === selectedModelId);
+      
+      const text = await extractContentFromFile(file, selectedModel);
       setProjectDescription(prev => (prev ? prev + '\n\n' + text : text));
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert('文件解析失败，请确保文件格式正确 (Word, PDF, MD, Txt, 图片)。');
+      alert(`文件解析失败: ${error.message || '请确保文件格式正确'}`);
     } finally {
       setIsImportingFile(false);
       // Reset input value so same file can be selected again if needed
